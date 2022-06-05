@@ -1,0 +1,14 @@
+dataset1:
+https://www.kaggle.com/datasets/dhruvmak/face-mask-detection?resource=download
+
+dataset2:
+https://www.kaggle.com/datasets/prithwirajmitra/covid-face-mask-detection-dataset
+
+dataset3:
+https://www.kaggle.com/datasets/ashishjangra27/face-mask-12k-images-dataset
+
+dataset4:
+https://www.kaggle.com/datasets/perke986/face-mask-segmentation-dataset?select=images
+
+dataset5:
+https://www.kaggle.com/datasets/humansintheloop/medical-mask-detection

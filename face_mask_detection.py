@@ -17,46 +17,31 @@ from sklearn.metrics import classification_report
 
 
 #data loader
-image_path = 'C:\study\concordia\comp472\project\COMP472_AI_Face_Mask_Detector\dataset'
-#image_path = 'C:\study\concordia\comp472\project\COMP472_AI_Face_Mask_Detector\dataset_2class'
+image_path = 'C:/Users/limob/Desktop/lab7/Oringin_dataset'
 normalize = transforms.Normalize(
   mean=[0.485, 0.456, 0.406],
   std=[0.225, 0.225, 0.225]
 )
 transforms = transforms.Compose(
   [
-  transforms.Resize([32, 32]), # resizing every image in 32*32 or 256*256
+  transforms.Resize([32, 32]), # resizing image
   transforms.ToTensor(), # transform to tensor
-  normalize # ?????-->?????????,????????
+  normalize
   ]
 )
 data = torchvision.datasets.ImageFolder(image_path, transform=transforms)
 print(data)
-test_data_size = 1000
+test_data_size = 400
 train_data_size = len(data) - test_data_size
 
 # Splitting data into test and train
 train_data, test_data = torch.utils.data.random_split(data, [train_data_size, test_data_size])
 # def getTrainingData():
 train_loader = torch.utils.data.DataLoader(train_data, batch_size=32, shuffle=True)
-test_loader = torch.utils.data.DataLoader(test_data, batch_size=1000, shuffle=True)
+test_loader = torch.utils.data.DataLoader(test_data, batch_size=32, shuffle=True)
 
 # Evaluation attributes
 y_train = np.array([y for x, y in iter(train_data)])
-#classes = ('Cloth_Mask', 'N95_Mask', 'No_Mask', 'Surgical_Mask')
-# Testing
-# def displayImage():
-#     images, labels = next(iter(train_loader))
-#     print(images.shape, labels.shape)
-#     for i in range(32):
-#         plt.subplot(4, 8, i + 1)
-#         plt.imshow(images[i].permute(1, 2, 0))
-#     # plt.imshow(images[6].permute(1, 2, 0))
-#     plt.show()
-# displayImage()
-
-
-
 
 class CNN(nn.Module):
     def __init__(self):
@@ -71,12 +56,13 @@ class CNN(nn.Module):
         self.fc3 = nn.Linear(84, 4) # output final class 4
 
     def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))  
-        x = self.pool(F.relu(self.conv2(x)))  
-        x = x.view(-1, 16 *5 *5)            
-        x = F.relu(self.fc1(x))               
-        x = F.relu(self.fc2(x))               
-        x = self.fc3(x)                       
+        # -> n, 3, 32, 32
+        x = self.pool(F.relu(self.conv1(x)))  # -> n, 6, 14, 14
+        x = self.pool(F.relu(self.conv2(x)))  # -> n, 16, 5, 5
+        x = x.view(-1, 16 *5 *5)            # -> n, 400
+        x = F.relu(self.fc1(x))               # -> n, 120
+        x = F.relu(self.fc2(x))               # -> n, 84
+        x = self.fc3(x)                       # -> n, 10
         return x
 
 
@@ -84,11 +70,10 @@ class CNN(nn.Module):
 cnn = CNN()
 print(cnn)
 
-loss_func = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(cnn.parameters(), lr=0.001)   # learning rate=0.001
+loss_func = nn.CrossEntropyLoss()
 
-
-for epoch in range(5):
+for epoch in range(1):
   # Training
   cnn.train()
   for i, (images, labels) in enumerate(train_loader):
@@ -122,9 +107,10 @@ torch.save(cnn.state_dict(), 'model.pth')
 
 torch.manual_seed(0)
 
+#Evaluation
 net = NeuralNetClassifier(
   CNN,
-  max_epochs=1,
+  max_epochs=4,
   iterator_train__num_workers=0,
   iterator_valid__num_workers=0,
   lr=1e-3,
@@ -137,35 +123,6 @@ net.fit(train_data, y=y_train)
 y_pred = net.predict(test_data)
 y_test = np.array([y for x, y in iter(test_data)])
 accuracy_score(y_test, y_pred)
-plot_confusion_matrix(net, test_data, y_test.reshape(-1, 1))
+plot_confusion_matrix(net, test_data, y_test.reshape(-1, 1), display_labels=['Cloth_Mask','N95_Mask','No_Mask','Surgical_Mask'])
 print(classification_report(y_test, y_pred))
 plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

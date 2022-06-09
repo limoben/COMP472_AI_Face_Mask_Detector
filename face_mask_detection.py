@@ -25,7 +25,7 @@ normalize = transforms.Normalize(
 )
 transforms = transforms.Compose(
   [
-  transforms.Resize([32, 32]), # resizing every image in 256*256
+  transforms.Resize([32, 32]), # resizing every image in 32*32 or 256*256
   transforms.ToTensor(), # transform to tensor
   normalize # ?????-->?????????,????????
   ]
@@ -36,7 +36,7 @@ test_data_size = 1000
 train_data_size = len(data) - test_data_size
 
 # Splitting data into test and train
-train_data, test_data = torch.utils.data.random_split(data, [test_data_size, train_data_size])
+train_data, test_data = torch.utils.data.random_split(data, [train_data_size, test_data_size])
 # def getTrainingData():
 train_loader = torch.utils.data.DataLoader(train_data, batch_size=32, shuffle=True)
 test_loader = torch.utils.data.DataLoader(test_data, batch_size=1000, shuffle=True)
@@ -71,13 +71,12 @@ class CNN(nn.Module):
         self.fc3 = nn.Linear(84, 4) # output final class 4
 
     def forward(self, x):
-        # -> n, 3, 32, 32
-        x = self.pool(F.relu(self.conv1(x)))  # -> n, 6, 14, 14
-        x = self.pool(F.relu(self.conv2(x)))  # -> n, 16, 5, 5
-        x = x.view(-1, 16 *5 *5)            # -> n, 400
-        x = F.relu(self.fc1(x))               # -> n, 120
-        x = F.relu(self.fc2(x))               # -> n, 84
-        x = self.fc3(x)                       # -> n, 10
+        x = self.pool(F.relu(self.conv1(x)))  
+        x = self.pool(F.relu(self.conv2(x)))  
+        x = x.view(-1, 16 *5 *5)            
+        x = F.relu(self.fc1(x))               
+        x = F.relu(self.fc2(x))               
+        x = self.fc3(x)                       
         return x
 
 
@@ -85,10 +84,11 @@ class CNN(nn.Module):
 cnn = CNN()
 print(cnn)
 
-optimizer = torch.optim.Adam(cnn.parameters(), lr=0.001)   # learning rate=0.001
 loss_func = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(cnn.parameters(), lr=0.001)   # learning rate=0.001
 
-for epoch in range(4):
+
+for epoch in range(5):
   # Training
   cnn.train()
   for i, (images, labels) in enumerate(train_loader):
